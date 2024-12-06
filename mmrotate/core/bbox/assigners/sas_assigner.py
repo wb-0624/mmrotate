@@ -118,6 +118,7 @@ class SASAssigner(BaseAssigner):
         Returns:
             :obj:`AssignResult`: The assign result.
         """
+
         INF = 100000000
 
         num_gt, num_bboxes = gt_bboxes.size(0), bboxes.size(0)
