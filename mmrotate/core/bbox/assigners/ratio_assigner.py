@@ -1,12 +1,12 @@
 import torch
 
-from ..builder import BBOX_ASSIGNERS
 from ..iou_calculators import build_iou_calculator
-from .assign_result import AssignResult
-from .base_assigner import BaseAssigner
+from mmdet.core.bbox.assigners.assign_result import AssignResult
+from mmdet.core.bbox.assigners.base_assigner import BaseAssigner
+from ..builder import ROTATED_BBOX_ASSIGNERS
 
 
-@BBOX_ASSIGNERS.register_module()
+@ROTATED_BBOX_ASSIGNERS.register_module()
 class RatioAssigner(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox. Each
     proposals will be assigned with `0` or a positive integer indicating the
