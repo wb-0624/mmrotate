@@ -67,16 +67,13 @@ class RatioAssigner(BaseAssigner):
         iou_offset = self.ratio_correct_list[0] * iou
 
         # 计算bboxes的中心点
-        center_points = (bboxes[:, :2] + bboxes[:, 2:]) / 2  # 简化计算
+        center_points =  self.get_bbox_center(bboxes)# 简化计算
         # 计算宽高比
-        widths = (bboxes[:, 2] - bboxes[:, 0])
-        heights = (bboxes[:, 3] - bboxes[:, 1])
+        widths, heights = self.get_bbox_wh(bboxes)
 
-        center_points_gt = (gt_bboxes[:, :2] + gt_bboxes[:, 2:]) / 2  # 简化计算
+        center_points_gt =  self.get_bbox_center(gt_bboxes) # 简化计算
+        gt_widths, gt_heights = self.get_bbox_wh(gt_bboxes)
         
-        gt_widths = (gt_bboxes[:, 2] - gt_bboxes[:, 0])
-        gt_heights = (gt_bboxes[:, 3] - gt_bboxes[:, 1])
-
 
         # 计算中心点偏移
         x_offset = ((center_points[:, 0].unsqueeze(0) - center_points_gt[:, 0].unsqueeze(1)) ** 2) / gt_widths.unsqueeze(1)
@@ -86,16 +83,18 @@ class RatioAssigner(BaseAssigner):
         center_offset = self.ratio_correct_list[1] * torch.exp(-torch.sqrt(x_offset + y_offset))
 
         # 计算宽高比差距
-        ratio = (widths / heights).unsqueeze(0) / (gt_widths / gt_heights).unsqueeze(1)
+        bbox_ratio = (torch.min(widths, heights) / torch.max(widths, heights)).unsqueeze(0)
+        gt_ratio = (torch.min(gt_widths, gt_heights) / torch.max(gt_widths, gt_heights)).unsqueeze(1)
+        ratio = bbox_ratio / gt_ratio
         ratio_offset = self.ratio_correct_list[2] * torch.exp(-torch.abs(torch.log(ratio)))
 
         # 最终的overlap
         overlaps = torch.stack([iou_offset, center_offset, ratio_offset]).sum(dim=0)
-        print("===================ratio assigner=============================")
-        # print(iou_offset.shape, center_offset.shape, ratio_offset.shape)
-        print("bboxes shape: ",bboxes.shape)
-        print("gt_bboxes: ", gt_bboxes.shape)
-        print("gt_bboxes: ", gt_bboxes)
+        # print("===================ratio assigner=============================")
+        # # print(iou_offset.shape, center_offset.shape, ratio_offset.shape)
+        # print("bboxes shape: ",bboxes.shape)
+        # print("gt_bboxes: ", gt_bboxes.shape)
+        # print("gt_bboxes: ", gt_bboxes)
         # print("overlaps shape: ", overlaps.shape)
 
         # 处理忽略区域
@@ -208,3 +207,38 @@ class RatioAssigner(BaseAssigner):
 
         return AssignResult(
             num_gts, assigned_gt_inds, max_overlaps, labels=assigned_labels)
+
+    def get_bbox_wh(self, bbox):
+        if bbox.size(-1) == 4:
+            w = bbox[..., 2] - bbox[..., 0]
+            h = bbox[..., 3] - bbox[..., 1]
+            return w, h
+        elif bbox.size(-1) == 5:
+            # (cx, cy, w, h, angle)
+            w = bbox[..., 2]
+            h = bbox[..., 3]
+            return w, h
+        elif bbox.size(-1) == 8:
+            # (x1, y1, x2, y2, x3, y3, x4, y4)
+            w = torch.sqrt((bbox[..., 0] - bbox[..., 2])**2 +
+                           (bbox[..., 0] - bbox[..., 4])**2)
+            h = torch.sqrt((bbox[..., 0] - bbox[..., 6])**2 +
+                            (bbox[..., 0] - bbox[..., 7])**2)
+            return w, h
+
+    def get_bbox_center(self, bbox):
+        if bbox.size(-1) == 4:
+            cx = (bbox[..., 0] + bbox[..., 2]) / 2
+            cy = (bbox[..., 1] + bbox[..., 3]) / 2
+            return cx, cy
+        elif bbox.size(-1) == 5:
+            # (cx, cy, w, h, angle)
+            return bbox[..., 0], bbox[..., 1]
+        elif bbox.size(-1) == 8:
+            # (x1, y1, x2, y2, x3, y3, x4, y4)
+            cx = (bbox[..., 0] + bbox[..., 2] + bbox[..., 4] + bbox[..., 6]) / 4
+            cy = (bbox[..., 1] + bbox[..., 3] + bbox[..., 5] + bbox[..., 7]) / 4
+            return cx, cy
+
+    def get_bbox_ratio(self, w, h):
+        return torch.min(w,h) / torch.max(w,h)
