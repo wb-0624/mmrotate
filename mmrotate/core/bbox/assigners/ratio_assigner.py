@@ -74,7 +74,8 @@ class RatioAssigner(BaseAssigner):
         center_points_gt =  self.get_bbox_center(gt_bboxes) # 简化计算
         gt_widths, gt_heights = self.get_bbox_wh(gt_bboxes)
         
-
+        # print("=========================")
+        # print(center_points)
         # 计算中心点偏移
         x_offset = ((center_points[:, 0].unsqueeze(0) - center_points_gt[:, 0].unsqueeze(1)) ** 2) / gt_widths.unsqueeze(1)
         y_offset = ((center_points[:, 1].unsqueeze(0) - center_points_gt[:, 1].unsqueeze(1)) ** 2) / gt_heights.unsqueeze(1)
@@ -212,33 +213,35 @@ class RatioAssigner(BaseAssigner):
         if bbox.size(-1) == 4:
             w = bbox[..., 2] - bbox[..., 0]
             h = bbox[..., 3] - bbox[..., 1]
-            return w, h
         elif bbox.size(-1) == 5:
             # (cx, cy, w, h, angle)
             w = bbox[..., 2]
             h = bbox[..., 3]
-            return w, h
         elif bbox.size(-1) == 8:
             # (x1, y1, x2, y2, x3, y3, x4, y4)
             w = torch.sqrt((bbox[..., 0] - bbox[..., 2])**2 +
                            (bbox[..., 0] - bbox[..., 4])**2)
             h = torch.sqrt((bbox[..., 0] - bbox[..., 6])**2 +
                             (bbox[..., 0] - bbox[..., 7])**2)
-            return w, h
+        return w, h
 
     def get_bbox_center(self, bbox):
         if bbox.size(-1) == 4:
             cx = (bbox[..., 0] + bbox[..., 2]) / 2
             cy = (bbox[..., 1] + bbox[..., 3]) / 2
-            return cx, cy
         elif bbox.size(-1) == 5:
             # (cx, cy, w, h, angle)
-            return bbox[..., 0], bbox[..., 1]
+            cx = bbox[..., 0]
+            cy = bbox[..., 1]
         elif bbox.size(-1) == 8:
             # (x1, y1, x2, y2, x3, y3, x4, y4)
             cx = (bbox[..., 0] + bbox[..., 2] + bbox[..., 4] + bbox[..., 6]) / 4
             cy = (bbox[..., 1] + bbox[..., 3] + bbox[..., 5] + bbox[..., 7]) / 4
-            return cx, cy
+        else:
+            # need implement size == 6
+            raise TypeError(f'bbox shape should be 4 or 5 or 8, now is{bbox.shape}')
+        center = torch.stack((cx, cy), dim=-1)
+        return center
 
     def get_bbox_ratio(self, w, h):
         return torch.min(w,h) / torch.max(w,h)
