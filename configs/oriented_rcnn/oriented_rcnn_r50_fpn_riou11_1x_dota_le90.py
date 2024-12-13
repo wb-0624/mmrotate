@@ -78,7 +78,7 @@ model = dict(
                 min_pos_iou=0.3,
                 match_low_quality=True,
                 ignore_iof_thr=-1,
-                ratio_correct=[2/5, 2/5, 1/5]
+                ratio_correct=[1/2,1/2]
                 ),
             sampler=dict(
                 type='RandomSampler',
