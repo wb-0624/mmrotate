@@ -30,8 +30,8 @@ class RatioAssigner(BaseAssigner):
                  ignore_wrt_candidates=True,
                  match_low_quality=True,
                  gpu_assign_thr=-1,
-                 iou_calculator=dict(type='RBboxOverlaps2D'),
-                 ratio_correct=[1/2,1/2]
+                 iou_calculator=dict(type='BboxOverlaps2D'),
+                 correct_list=[1/2,1/2]
                  ):
         self.pos_iou_thr = pos_iou_thr
         self.neg_iou_thr = neg_iou_thr
@@ -42,7 +42,7 @@ class RatioAssigner(BaseAssigner):
         self.gpu_assign_thr = gpu_assign_thr
         self.match_low_quality = match_low_quality
         self.iou_calculator = build_iou_calculator(iou_calculator)
-        self.ratio_correct_list = ratio_correct
+        self.correct_list = correct_list
 
 
     def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None):
@@ -64,7 +64,7 @@ class RatioAssigner(BaseAssigner):
         iou = self.iou_calculator(gt_bboxes, bboxes)
         
         # 合并计算 overlap 和宽高比偏移
-        iou_offset = self.ratio_correct_list[0] * iou
+        iou_offset = self.correct_list[0] * iou
 
         # 计算bboxes的中心点
         center_points =  self.get_bbox_center(bboxes)# 简化计算
@@ -79,13 +79,13 @@ class RatioAssigner(BaseAssigner):
         y_offset = ((center_points[:, 1].unsqueeze(0) - center_points_gt[:, 1].unsqueeze(1)) ** 2) / gt_heights.unsqueeze(1)
         
         # 合并中心点偏移计算
-        center_offset = self.ratio_correct_list[1] * torch.exp(-torch.sqrt(x_offset + y_offset))
+        center_offset = self.correct_list[1] * torch.exp(-torch.sqrt(x_offset + y_offset))
 
         # 计算宽高比差距
         # bbox_ratio = (torch.min(widths, heights) / torch.max(widths, heights)).unsqueeze(0)
         # gt_ratio = (torch.min(gt_widths, gt_heights) / torch.max(gt_widths, gt_heights)).unsqueeze(1)
         # ratio = bbox_ratio / gt_ratio
-        # ratio_offset = self.ratio_correct_list[2] * torch.exp(-torch.abs(torch.log(ratio)))
+        # ratio_offset = self.correct_list[2] * torch.exp(-torch.abs(torch.log(ratio)))
 
         # 最终的overlap
         overlaps = torch.stack([iou_offset, center_offset]).sum(dim=0)
