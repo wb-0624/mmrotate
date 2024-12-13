@@ -7,7 +7,7 @@ from ..builder import ROTATED_BBOX_ASSIGNERS
 
 
 @ROTATED_BBOX_ASSIGNERS.register_module()
-class RatioAssigner(BaseAssigner):
+class MaxIoUDistanceAssigner(BaseAssigner):
     """Assign a corresponding gt bbox or background to each bbox. Each
     proposals will be assigned with `0` or a positive integer indicating the
     ground truth index.

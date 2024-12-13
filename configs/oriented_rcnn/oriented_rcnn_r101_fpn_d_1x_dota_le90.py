@@ -8,14 +8,14 @@ model = dict(
     type='OrientedRCNN',
     backbone=dict(
         type='ResNet',
-        depth=50,
+        depth=101,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
         norm_cfg=dict(type='BN', requires_grad=True),
         norm_eval=True,
         style='pytorch',
-        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')),
+        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet101')),
     neck=dict(
         type='FPN',
         in_channels=[256, 512, 1024, 2048],
@@ -72,14 +72,13 @@ model = dict(
     train_cfg=dict(
         rpn=dict(
             assigner=dict(
-                type='RatioAssigner',
+                type='MaxIoUDistanceAssigner',
                 pos_iou_thr=0.7,
                 neg_iou_thr=0.3,
                 min_pos_iou=0.3,
                 match_low_quality=True,
                 ignore_iof_thr=-1,
-                ratio_correct=[1/2,1/2]
-                ),
+                correct_list=[1/2, 1/2]),
             sampler=dict(
                 type='RandomSampler',
                 num=256,
