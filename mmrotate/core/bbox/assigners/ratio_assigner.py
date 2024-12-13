@@ -30,8 +30,8 @@ class RatioAssigner(BaseAssigner):
                  ignore_wrt_candidates=True,
                  match_low_quality=True,
                  gpu_assign_thr=-1,
-                 iou_calculator=dict(type='BboxOverlaps2D'),
-                 ratio_correct=[1/3,1/3,1/3]
+                 iou_calculator=dict(type='RBboxOverlaps2D'),
+                 ratio_correct=[1/2,1/2]
                  ):
         self.pos_iou_thr = pos_iou_thr
         self.neg_iou_thr = neg_iou_thr
@@ -73,9 +73,7 @@ class RatioAssigner(BaseAssigner):
 
         center_points_gt =  self.get_bbox_center(gt_bboxes) # 简化计算
         gt_widths, gt_heights = self.get_bbox_wh(gt_bboxes)
-        
-        # print("=========================")
-        # print(center_points)
+
         # 计算中心点偏移
         x_offset = ((center_points[:, 0].unsqueeze(0) - center_points_gt[:, 0].unsqueeze(1)) ** 2) / gt_widths.unsqueeze(1)
         y_offset = ((center_points[:, 1].unsqueeze(0) - center_points_gt[:, 1].unsqueeze(1)) ** 2) / gt_heights.unsqueeze(1)
@@ -84,19 +82,16 @@ class RatioAssigner(BaseAssigner):
         center_offset = self.ratio_correct_list[1] * torch.exp(-torch.sqrt(x_offset + y_offset))
 
         # 计算宽高比差距
-        bbox_ratio = (torch.min(widths, heights) / torch.max(widths, heights)).unsqueeze(0)
-        gt_ratio = (torch.min(gt_widths, gt_heights) / torch.max(gt_widths, gt_heights)).unsqueeze(1)
-        ratio = bbox_ratio / gt_ratio
-        ratio_offset = self.ratio_correct_list[2] * torch.exp(-torch.abs(torch.log(ratio)))
+        # bbox_ratio = (torch.min(widths, heights) / torch.max(widths, heights)).unsqueeze(0)
+        # gt_ratio = (torch.min(gt_widths, gt_heights) / torch.max(gt_widths, gt_heights)).unsqueeze(1)
+        # ratio = bbox_ratio / gt_ratio
+        # ratio_offset = self.ratio_correct_list[2] * torch.exp(-torch.abs(torch.log(ratio)))
 
         # 最终的overlap
-        overlaps = torch.stack([iou_offset, center_offset, ratio_offset]).sum(dim=0)
-        # print("===================ratio assigner=============================")
-        # # print(iou_offset.shape, center_offset.shape, ratio_offset.shape)
-        # print("bboxes shape: ",bboxes.shape)
-        # print("gt_bboxes: ", gt_bboxes.shape)
-        # print("gt_bboxes: ", gt_bboxes)
-        # print("overlaps shape: ", overlaps.shape)
+        overlaps = torch.stack([iou_offset, center_offset]).sum(dim=0)
+
+        # use ratio_offset
+        # overlaps = torch.stack([iou_offset, center_offset, ratio_offset]).sum(dim=0)
 
         # 处理忽略区域
         if self.ignore_iof_thr > 0 and gt_bboxes_ignore is not None and gt_bboxes_ignore.numel() > 0:
