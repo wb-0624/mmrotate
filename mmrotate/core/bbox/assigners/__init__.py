@@ -5,8 +5,9 @@ from .convex_assigner import ConvexAssigner
 from .max_convex_iou_assigner import MaxConvexIoUAssigner
 from .sas_assigner import SASAssigner
 from .max_iou_distance_assigner import MaxIoUDistanceAssigner
+from .max_ciou_assigner import MaxCIoUAssigner
 
 __all__ = [
     'ConvexAssigner', 'MaxConvexIoUAssigner', 'SASAssigner', 'ATSSKldAssigner',
-    'ATSSObbAssigner', 'RatioAssigner', 'MaxIoUDistanceAssigner'
+    'ATSSObbAssigner', 'RatioAssigner', 'MaxIoUDistanceAssigner', 'MaxCIoUAssigner'
 ]
