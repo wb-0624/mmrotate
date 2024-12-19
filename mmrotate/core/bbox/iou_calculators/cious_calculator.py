@@ -68,7 +68,6 @@ def calculate_cious_hbb(bboxes1, bboxes2):
         S = (iou>0.5).float()
         alpha= S*v/(1-iou+v)
     cious = iou - u - alpha * v
-    cious = torch.clamp(cious,min=-1.0,max = 1.0)
     if exchange:
         cious = cious.T
     
