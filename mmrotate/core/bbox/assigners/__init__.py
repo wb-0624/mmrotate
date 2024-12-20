@@ -10,6 +10,6 @@ from .atss_distance_iou_assigner import ATSSDIoUAssigner
 
 __all__ = [
     'ConvexAssigner', 'MaxConvexIoUAssigner', 'SASAssigner', 'ATSSKldAssigner',
-    'ATSSObbAssigner', 'RatioAssigner', 'MaxIoUDistanceAssigner', 'MaxCIoUAssigner'
+    'ATSSObbAssigner', 'RatioAssigner', 'MaxIoUDistanceAssigner', 'MaxCIoUAssigner',
     'ATSSDIoUAssigner'
 ]
