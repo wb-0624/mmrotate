@@ -36,10 +36,8 @@ model = dict(
             angle_range=angle_version,
             target_means=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             target_stds=[1.0, 1.0, 1.0, 1.0, 0.5, 0.5]),
-        loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
-        # loss_bbox=dict(type='SmoothL1Loss', beta=0.1111111111111111, loss_weight=1.0)
-        loss_bbox=dict(type='GIoULoss', loss_weight=1.0)
+        loss_cls=dict(type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
+        loss_bbox=dict(type='SmoothL1Loss', beta=0.1111111111111111, loss_weight=1.0)
             ),
     roi_head=dict(
         type='OrientedStandardRoIHead',
@@ -67,10 +65,8 @@ model = dict(
                 target_means=(.0, .0, .0, .0, .0),
                 target_stds=(0.1, 0.1, 0.2, 0.2, 0.1)),
             reg_class_agnostic=True,
-            loss_cls=dict(
-                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
-            # loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)
-            loss_bbox=dict(type='GIoULoss', loss_weight=1.0)
+            loss_cls=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+            loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)
             )),
     train_cfg=dict(
         rpn=dict(
