@@ -111,6 +111,8 @@ class ATSSDIoUAssigner(BaseAssigner):
         overlaps_thr_per_gt = overlaps_mean_per_gt + overlaps_std_per_gt
 
         is_pos = candidate_overlap >= overlaps_thr_per_gt[None, :]
+        for gt_idx in range(num_gts):
+            candidate_idxs[:, gt_idx] += gt_idx * num_bboxes
         candidate_idxs = candidate_idxs.view(-1)
 
                 # if an anchor box is assigned to multiple gts,
