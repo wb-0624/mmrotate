@@ -21,6 +21,6 @@ __all__ = [
     'GVRatioCoder', 'ConvexAssigner', 'MaxConvexIoUAssigner', 'SASAssigner',
     'ATSSKldAssigner', 'gaussian2bbox', 'gt2gaussian', 'GaussianMixture',
     'build_assigner', 'build_bbox_coder', 'build_sampler', 'bbox_mapping_back',
-    'CSLCoder', 'ATSSObbAssigner', 'MaxIoUDistanceAssigner', 'MaxCIoUAssigner'
+    'CSLCoder', 'ATSSObbAssigner', 'MaxIoUDistanceAssigner', 'MaxCIoUAssigner',
     'ATSSDIoUAssigner'
 ]
