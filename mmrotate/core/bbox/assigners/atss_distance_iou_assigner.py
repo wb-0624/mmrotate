@@ -1,9 +1,11 @@
 import torch
 
 from ..iou_calculators import build_iou_calculator
+from mmcv.ops import points_in_polygons
 from mmdet.core.bbox.assigners.assign_result import AssignResult
 from mmdet.core.bbox.assigners.base_assigner import BaseAssigner
 from ..builder import ROTATED_BBOX_ASSIGNERS
+from ..transforms import obb2poly
 
 
 @ROTATED_BBOX_ASSIGNERS.register_module()
@@ -112,12 +114,20 @@ class ATSSDIoUAssigner(BaseAssigner):
         overlaps_std_per_gt = candidate_overlap.std(0)
         overlaps_thr_per_gt = overlaps_mean_per_gt + overlaps_std_per_gt
 
+        gt_bboxes = obb2poly(gt_bboxes, self.angle_version)
+
         is_pos = candidate_overlap >= overlaps_thr_per_gt[None, :]
+        inside_flag = points_in_polygons(center_points, gt_bboxes)
+        is_in_gts = inside_flag[candidate_idxs,
+                                torch.arange(num_gts)].to(is_pos.dtype)
+
+        is_pos = is_pos & is_in_gts
+
         for gt_idx in range(num_gts):
             candidate_idxs[:, gt_idx] += gt_idx * num_bboxes
         candidate_idxs = candidate_idxs.view(-1)
 
-                # if an anchor box is assigned to multiple gts,
+        # if an anchor box is assigned to multiple gts,
         # the one with the highest IoU will be selected.
         overlaps_inf = torch.full_like(overlaps,
                                        -INF).t().contiguous().view(-1)
