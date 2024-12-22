@@ -107,6 +107,8 @@ class ATSSDIoUAssigner(BaseAssigner):
 
         # Selecting candidates based on the center distance
         _, candidate_idxs = distances.topk(self.topk, dim=0, largest=False)
+        candidate_idxs = torch.cat([candidate_idxs], dim=0)
+        overlaps = overlaps.T
         candidate_overlap = overlaps[candidate_idxs, torch.arange(num_gts)]
         overlaps_mean_per_gt = candidate_overlap.mean(0)
         overlaps_std_per_gt = candidate_overlap.std(0)
