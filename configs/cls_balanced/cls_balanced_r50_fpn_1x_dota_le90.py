@@ -157,21 +157,15 @@ model = dict(
                     ignore_iof_thr=-1,
                     iou_calculator=dict(type="BboxOverlaps2D"),
                 ),
-                sampler=dict(
-                    type="CombinedSampler",
+               sampler=dict(
+                    type="CLSBalancedSampler",
                     num=512,
                     pos_fraction=0.25,
                     neg_pos_ub=-1,
                     add_gt_as_proposals=True,
-                    pos_sampler=dict(
-                        type="CLSBalancedPosSampler",
-                    ),
-                    neg_sampler=dict(
-                        type="IoUBalancedNegSampler",
-                        floor_thr=-1,
-                        floor_fraction=0,
-                        num_bins=3,
-                    ),
+                    floor_thr=-1,
+                    floor_fraction=0,
+                    num_bins=3,
                 ),
                 pos_weight=-1,
                 debug=False,
@@ -186,21 +180,15 @@ model = dict(
                     ignore_iof_thr=-1,
                     iou_calculator=dict(type="RBboxOverlaps2D"),
                 ),
-                sampler=dict(
-                    type="CombinedSampler",
+               sampler=dict(
+                    type="CLSBalancedSampler",
                     num=512,
                     pos_fraction=0.25,
                     neg_pos_ub=-1,
                     add_gt_as_proposals=True,
-                    pos_sampler=dict(
-                        type="CLSBalancedPosSampler",
-                    ),
-                    neg_sampler=dict(
-                        type="IoUBalancedNegSampler",
-                        floor_thr=-1,
-                        floor_fraction=0,
-                        num_bins=3,
-                    ),
+                    floor_thr=-1,
+                    floor_fraction=0,
+                    num_bins=3,
                 ),
                 pos_weight=-1,
                 debug=False,
