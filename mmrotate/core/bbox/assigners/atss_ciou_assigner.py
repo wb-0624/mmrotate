@@ -24,14 +24,8 @@ class ATSSCIoUAssigner(BaseAssigner):
 
     def __init__(self,
                 topk,
-                angle_version='oc',
-                iou_calculator=dict(type='BboxOverlaps2D'),
-                correct_list=[1/2,1/2]
                 ):
         self.topk = topk
-        self.angle_version = angle_version
-        self.iou_calculator = build_iou_calculator(iou_calculator)
-        self.correct_list = correct_list
 
 
     def assign(self, bboxes, gt_bboxes, gt_bboxes_ignore=None, gt_labels=None):
@@ -79,6 +73,8 @@ class ATSSCIoUAssigner(BaseAssigner):
 
         # Selecting candidates based on the center distance
         _, candidate_idxs = distances.topk(self.topk, dim=0, largest=False)
+        candidate_idxs = torch.cat([candidate_idxs], dim=0)
+        overlaps = overlaps.T
         candidate_overlap = overlaps[candidate_idxs, torch.arange(num_gts)]
         overlaps_mean_per_gt = candidate_overlap.mean(0)
         overlaps_std_per_gt = candidate_overlap.std(0)
