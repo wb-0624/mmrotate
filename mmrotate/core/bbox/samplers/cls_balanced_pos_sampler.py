@@ -1,6 +1,6 @@
 import torch
 
-from mmdet.core.bbox.sampler import RandomSampler
+from mmdet.core.bbox.samplers import RandomSampler
 
 
 class CLSBalancedPosSampler(RandomSampler):

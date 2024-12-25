@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from mmdet.core.bbox.sampler import RandomSampler
+from mmdet.core.bbox.samplers import RandomSampler
 
 
 class IoUBalancedNegSampler(RandomSampler):

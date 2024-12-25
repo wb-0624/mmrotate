@@ -1,5 +1,5 @@
 from mmdet.core.bbox.samplers.base_sampler import BaseSampler
-from mmdet.core.bbox.assign_sampling import build_sampler
+from mmrotate.core.bbox.builder import build_sampler
 
 class CombinedSampler(BaseSampler):
 
