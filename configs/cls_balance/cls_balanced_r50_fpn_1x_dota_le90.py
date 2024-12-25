@@ -7,7 +7,7 @@ _base_ = [
 angle_version = "le90"
 
 model = dict(
-    type="ClsBalance",
+    type="CLSBalanced",
     backbone=dict(
         type="ResNet",
         depth=50,
@@ -81,7 +81,13 @@ model = dict(
                 loss_cls=dict(
                     type="CrossEntropyLoss", use_sigmoid=False, loss_weight=1.0
                 ),
-                loss_bbox=dict(type="SmoothL1Loss", beta=1.0, loss_weight=1.0),
+                loss_bbox=dict(
+                    type="BalancedL1Loss",
+                    alpha=0.5,
+                    gamma=1.5,
+                    beta=1.0,
+                    loss_weight=1.0,
+                ),
             ),
             dict(
                 type="RotatedShared2FCBBoxHead",
@@ -102,7 +108,13 @@ model = dict(
                 loss_cls=dict(
                     type="CrossEntropyLoss", use_sigmoid=False, loss_weight=1.0
                 ),
-                loss_bbox=dict(type="SmoothL1Loss", beta=1.0, loss_weight=1.0),
+                loss_bbox=dict(
+                    type="BalancedL1Loss",
+                    alpha=0.5,
+                    gamma=1.5,
+                    beta=1.0,
+                    loss_weight=1.0,
+                ),
             ),
         ],
     ),
@@ -166,11 +178,20 @@ model = dict(
                     iou_calculator=dict(type="RBboxOverlaps2D"),
                 ),
                 sampler=dict(
-                    type="RRandomSampler",
+                    type="CombinedSampler",
                     num=512,
                     pos_fraction=0.25,
                     neg_pos_ub=-1,
                     add_gt_as_proposals=True,
+                    pos_sampler=dict(
+                        type="CLSBalancedPosSampler",
+                    ),
+                    neg_sampler=dict(
+                        type="IoUBalancedNegSampler",
+                        floor_thr=-1,
+                        floor_fraction=0,
+                        num_bins=3,
+                    ),
                 ),
                 pos_weight=-1,
                 debug=False,

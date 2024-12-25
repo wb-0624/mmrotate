@@ -1,6 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .base import RotatedBaseDetector
-from .cls_balance import ClsBalance
+from .cls_balanced import CLSBalanced
 from .gliding_vertex import GlidingVertex
 from .oriented_rcnn import OrientedRCNN
 from .r3det import R3Det
@@ -18,5 +18,5 @@ __all__ = [
     'RotatedRetinaNet', 'RotatedFasterRCNN', 'OrientedRCNN', 'RoITransformer',
     'GlidingVertex', 'ReDet', 'R3Det', 'S2ANet', 'RotatedRepPoints',
     'RotatedBaseDetector', 'RotatedTwoStageDetector',
-    'RotatedSingleStageDetector', 'RotatedFCOS', 'ClsBalance'
+    'RotatedSingleStageDetector', 'RotatedFCOS', 'CLSBalanced'
 ]

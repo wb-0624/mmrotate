@@ -4,7 +4,7 @@ from .two_stage import RotatedTwoStageDetector
 
 
 @ROTATED_DETECTORS.register_module()
-class ClsBalance(RotatedTwoStageDetector):
+class CLSBalanced(RotatedTwoStageDetector):
 
     def __init__(self,
                  backbone,
@@ -15,7 +15,7 @@ class ClsBalance(RotatedTwoStageDetector):
                  neck=None,
                  pretrained=None,
                  init_cfg=None):
-        super(ClsBalance, self).__init__(
+        super(CLSBalanced, self).__init__(
             backbone=backbone,
             neck=neck,
             rpn_head=rpn_head,
