@@ -101,7 +101,8 @@ model = dict(
                 loss_cls=dict(
                     type="CrossEntropyLoss", use_sigmoid=False, loss_weight=1.0
                 ),
-                loss_bbox=dict(type="SmoothL1Loss", beta=1.0, loss_weight=1.0),
+                # loss_bbox=dict(type="SmoothL1Loss", beta=1.0, loss_weight=1.0),
+                loss_bbox=dict(type="GIoULoss", loss_weight=1.0),
             ),
         ],
     ),
@@ -109,10 +110,10 @@ model = dict(
     train_cfg=dict(
         rpn=dict(
             assigner=dict(
-                type='ATSSMaxIoUAssigner',
+                type="ATSSMaxIoUAssigner",
                 topk=9,
-                angle_version = angle_version,
-                ),
+                angle_version=angle_version,
+            ),
             sampler=dict(
                 type="RandomSampler",
                 num=256,
