@@ -29,7 +29,7 @@ class CLSBalancedSampler(BaseSampler):
                  floor_thr=-1,
                  floor_fraction=0,
                  num_bins=3,
-                 extreme_ratio=0.1,
+                 extreme_ratio=[0.1,0.1], # easy, hard
                  bboxes_type='hbb',
                  **kwargs):
         from mmdet.core.bbox import demodata
@@ -116,10 +116,9 @@ class CLSBalancedSampler(BaseSampler):
             label_indices = (labels == label).nonzero(as_tuple=True)[0]
             if len(label_indices) > samples_per_class:
                 # 随机采样 samples_per_class 个样本
-                extreme_samples = math.floor(self.extreme_ratio * samples_per_class)
-                hard_samples = extreme_samples
-                easy_samples = extreme_samples
-                other_samples = samples_per_class - extreme_samples
+                easy_samples = math.floor(self.extreme_ratio[0] * samples_per_class)
+                hard_samples = math.floor(self.extreme_ratio[1] * samples_per_class)
+                other_samples = samples_per_class - hard_samples - easy_samples
 
                 max_overlaps_label = max_overlaps[label_indices]
                 # 获取当前类别的样本索引
