@@ -1,6 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import numpy as np
 import torch
+import math
 from mmdet.core.bbox.samplers.base_sampler import BaseSampler
 from mmdet.core.bbox.samplers.sampling_result import SamplingResult
 
@@ -28,6 +29,8 @@ class CLSBalancedSampler(BaseSampler):
                  floor_thr=-1,
                  floor_fraction=0,
                  num_bins=3,
+                 extreme_ratio=0.1,
+                 bboxes_type='hbb',
                  **kwargs):
         from mmdet.core.bbox import demodata
         super(CLSBalancedSampler, self).__init__(num, pos_fraction, neg_pos_ub,
@@ -41,6 +44,8 @@ class CLSBalancedSampler(BaseSampler):
         self.floor_fraction = floor_fraction
         self.num_bins = num_bins
         self.rng = demodata.ensure_rng(kwargs.get('rng', None))
+        self.bboxes_type = bboxes_type
+        self.extreme_ratio = extreme_ratio
 
     def random_choice(self, gallery, num):
         """Random select some elements from the gallery.
@@ -76,9 +81,9 @@ class CLSBalancedSampler(BaseSampler):
         if pos_inds.numel() <= num_expected:
             return pos_inds
         else:
-            return self.random_choice_pos_cls_balance(pos_inds, num_expected, assign_result.labels)
+            return self.random_choice_pos_cls_balance(pos_inds, num_expected, assign_result.labels, assign_result.max_overlaps)
 
-    def random_choice_pos_cls_balance(self, gallery, num, labels):
+    def random_choice_pos_cls_balance(self, gallery, num, labels, max_overlaps):
         """Random select some elements balance cls from the gallery.
 
         If `gallery` is a Tensor, the returned indices will be a Tensor;
@@ -101,7 +106,8 @@ class CLSBalancedSampler(BaseSampler):
         unique_labels = labels.unique()
         unique_labels = unique_labels[unique_labels > -1]
         samples_per_class = num // len(unique_labels)
-        perm = []
+
+        rand_inds = torch.tensor([], dtype=torch.long, device=gallery.device)
 
         for label in unique_labels:
             if label <= 0:
@@ -110,22 +116,45 @@ class CLSBalancedSampler(BaseSampler):
             label_indices = (labels == label).nonzero(as_tuple=True)[0]
             if len(label_indices) > samples_per_class:
                 # 随机采样 samples_per_class 个样本
-                perm.extend(label_indices[torch.randperm(len(label_indices))[:samples_per_class]].tolist())
+                extreme_samples = math.floor(self.extreme_ratio * samples_per_class)
+                hard_samples = extreme_samples
+                easy_samples = extreme_samples
+                other_samples = samples_per_class - extreme_samples
+
+                max_overlaps_label = max_overlaps[label_indices]
+                # 获取当前类别的样本索引
+                label_indices = (labels == label).nonzero(as_tuple=True)[0]
+                max_overlaps_label = max_overlaps[label_indices]
+
+                # 获取排序后的索引
+                sorted_indices = max_overlaps_label.argsort()
+
+                # 获取难样本和易样本的索引
+                hard_indices = sorted_indices[:hard_samples]  # 难样本：IoU 最低
+                easy_indices = sorted_indices[-easy_samples:]  # 易样本：IoU 最高
+
+                # 基于排序后的索引在 max_overlaps 中获取对应的值
+                hard_indices = label_indices[hard_indices]
+                easy_indices = label_indices[easy_indices]
+                
+                remaining_mask = ~torch.isin(torch.arange(len(label_indices), device=gallery.device), torch.cat([hard_indices, easy_indices]))
+                gallery_o = label_indices[remaining_mask]
+                other_indices = gallery_o[torch.randperm(len(gallery_o))[:other_samples]]
+
+                rand_inds = torch.cat([rand_inds, other_indices, hard_indices, easy_indices])
             else:
-                perm.extend(label_indices.tolist())
+                rand_inds = torch.cat([rand_inds, label_indices])
 
         # 如果采样总数不够 num_samples，则在剩下的样本中进行随机采样
-        if len(perm) < num:
+        if len(rand_inds) < num:
             # 还差多少个样本
-            remain_num = num - len(perm)
+            remain_num = num - len(rand_inds)
             # gallery中除去已经采样的样本
-            perm_set = set(perm)
-            gallery_o = torch.tensor([x for i, x in enumerate(gallery) if i not in perm_set])
+            mask = ~torch.isin(torch.arange(len(gallery), device=gallery.device), rand_inds)
+            gallery_o = gallery[mask]
             # 从剩下的样本中随机采样 remain_num 个样本
-            need_perm = gallery_o[torch.randperm(len(gallery_o))[:remain_num]].tolist()
-            perm.extend(need_perm)
-
-        rand_inds = torch.tensor(perm, dtype=torch.long, device=gallery.device)
+            need_perm = gallery_o[torch.randperm(len(gallery_o))[:remain_num]]
+            rand_inds = torch.cat([rand_inds, need_perm])
         
         if not is_tensor:
             rand_inds = rand_inds.cpu().numpy()
@@ -258,7 +287,12 @@ class CLSBalancedSampler(BaseSampler):
         if len(bboxes.shape) < 2:
             bboxes = bboxes[None, :]
 
-        bboxes = bboxes[:, :5]
+        if self.bboxes_type == 'obb':
+            bboxes = bboxes[:, :5]
+        elif self.bboxes_type == 'hbb':
+            bboxes = bboxes[:, :4]
+        else:
+            raise ValueError('bboxes_type must be one of ["hbb", "obb"]')
 
         gt_flags = bboxes.new_zeros((bboxes.shape[0], ), dtype=torch.uint8)
         if self.add_gt_as_proposals and len(gt_bboxes) > 0:

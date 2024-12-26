@@ -81,13 +81,7 @@ model = dict(
                 loss_cls=dict(
                     type="CrossEntropyLoss", use_sigmoid=False, loss_weight=1.0
                 ),
-                loss_bbox=dict(
-                    type="BalancedL1Loss",
-                    alpha=0.5,
-                    gamma=1.5,
-                    beta=1.0,
-                    loss_weight=1.0,
-                ),
+                loss_bbox=dict(type="SmoothL1Loss", beta=1.0 / 9.0, loss_weight=1.0),
             ),
             dict(
                 type="RotatedShared2FCBBoxHead",
@@ -108,13 +102,7 @@ model = dict(
                 loss_cls=dict(
                     type="CrossEntropyLoss", use_sigmoid=False, loss_weight=1.0
                 ),
-                loss_bbox=dict(
-                    type="BalancedL1Loss",
-                    alpha=0.5,
-                    gamma=1.5,
-                    beta=1.0,
-                    loss_weight=1.0,
-                ),
+                loss_bbox=dict(type="SmoothL1Loss", beta=1.0 / 9.0, loss_weight=1.0),
             ),
         ],
     ),
@@ -157,13 +145,17 @@ model = dict(
                     ignore_iof_thr=-1,
                     iou_calculator=dict(type="BboxOverlaps2D"),
                 ),
-            sampler=dict(
-                type="RandomSampler",
-                num=256,
-                pos_fraction=0.5,
-                neg_pos_ub=-1,
-                add_gt_as_proposals=False,
-            ),
+                sampler=dict(
+                    type="CLSBalancedSampler",
+                    num=512,
+                    pos_fraction=0.25,
+                    neg_pos_ub=-1,
+                    add_gt_as_proposals=True,
+                    floor_thr=-1,
+                    floor_fraction=0,
+                    num_bins=3,
+                    bboxes_type="hbb",
+                ),
                 pos_weight=-1,
                 debug=False,
             ),
@@ -177,7 +169,7 @@ model = dict(
                     ignore_iof_thr=-1,
                     iou_calculator=dict(type="RBboxOverlaps2D"),
                 ),
-               sampler=dict(
+                sampler=dict(
                     type="CLSBalancedSampler",
                     num=512,
                     pos_fraction=0.25,
@@ -186,6 +178,7 @@ model = dict(
                     floor_thr=-1,
                     floor_fraction=0,
                     num_bins=3,
+                    bboxes_type="obb",
                 ),
                 pos_weight=-1,
                 debug=False,
