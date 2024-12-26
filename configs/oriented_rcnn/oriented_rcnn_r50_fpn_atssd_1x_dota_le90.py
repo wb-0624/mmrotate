@@ -73,7 +73,8 @@ model = dict(
             assigner=dict(
                 type='ATSSDIoUAssigner',
                 topk=9,
-                correct_list=[1/2,1/2]
+                correct_list=[1/2,1/2],
+                angle_version=angle_version,
                 ),
             sampler=dict(
                 type='RandomSampler',
