@@ -81,7 +81,7 @@ model = dict(
                 loss_cls=dict(
                     type="CrossEntropyLoss", use_sigmoid=False, loss_weight=1.0
                 ),
-                loss_bbox=dict(type="SmoothL1Loss", beta=1.0 / 9.0, loss_weight=1.0),
+                loss_bbox=dict(type="SmoothL1Loss", beta=1.0, loss_weight=1.0),
             ),
             dict(
                 type="RotatedShared2FCBBoxHead",
@@ -102,7 +102,7 @@ model = dict(
                 loss_cls=dict(
                     type="CrossEntropyLoss", use_sigmoid=False, loss_weight=1.0
                 ),
-                loss_bbox=dict(type="SmoothL1Loss", beta=1.0 / 9.0, loss_weight=1.0),
+                loss_bbox=dict(type="SmoothL1Loss", beta=1.0, loss_weight=1.0),
             ),
         ],
     ),
