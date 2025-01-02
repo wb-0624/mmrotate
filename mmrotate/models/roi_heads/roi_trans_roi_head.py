@@ -233,6 +233,9 @@ class RoITransRoIHead(BaseModule, metaclass=ABCMeta):
                             gt_bboxes[j][
                                 sampling_result.pos_assigned_gt_inds, :]
 
+                    with open('sampling_result.txt', 'a') as f:
+                        f.write(f'stage {i}, img {j}\n')
+                        f.wirte(f'{assign_result.labels[sampling_result.pos_inds]}\n')
                     sampling_results.append(sampling_result)
 
             # bbox head forward and loss
